@@ -702,8 +702,8 @@ sub_c(){
 		mkdir -p "$ROOT_DIR/build"
 		CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
 		LIBCLANG_PREFIX=$(brew --prefix llvm@$LLVM_VERSION_STRING)
-		echo "-DLibClang_INCLUDE_DIR=${LIBC_PREFIX}/include/clang-c" >> $CMAKE_CONFIG_PATH
-		echo "-DLibClang_LIBRARY=${LIBC_PREFIX}/lib/libclang.dylib" >> $CMAKE_CONFIG_PATH
+		echo "-DLibClang_INCLUDE_DIR=${LIBCLANG_PREFIX}/include/clang-c" >> $CMAKE_CONFIG_PATH
+		echo "-DLibClang_LIBRARY=${LIBCLANG_PREFIX}/lib/libclang.dylib" >> $CMAKE_CONFIG_PATH
 	fi
 }
 
