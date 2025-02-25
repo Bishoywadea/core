@@ -541,66 +541,23 @@ sub_nodejs(){
 			fi
 			wget -qO- https://github.com/metacall/libnode/releases/download/v22.6.0/libnode-${arch}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
 			
-			if [ $? -eq 0 ]; then
-				echo "Download and extraction completed successfully."
-			else
-				echo "Error during download or extraction."
-				exit 1
-			fi
-
-			# Verify that the NODE_PREFIX directory exists and is not empty
-			if [ -d "$NODE_PREFIX" ] && [ "$(ls -A "$NODE_PREFIX")" ]; then
-				echo "The directory $NODE_PREFIX exists and is not empty."
-			else
-				echo "The directory $NODE_PREFIX does not exist or is empty."
-				exit 1
-			fi
-
-			# List the contents of the NODE_PREFIX directory
-			echo "Contents of $NODE_PREFIX:"
-			ls -l "$NODE_PREFIX"
-
-			# Verify the presence of specific files
-			if [ -f "$NODE_PREFIX/libnode.dylib" ] && [ -f "$NODE_PREFIX/node" ]; then
-				echo "libnode.dylib and node executable are present in $NODE_PREFIX."
-			else
-				echo "libnode.dylib or node executable are missing in $NODE_PREFIX."
-				exit 1
-			fi
-
-			
 			# Install NPM
 			wget -qO- https://registry.npmjs.org/npm/-/npm-10.8.2.tgz | tar xvz -C $NODE_PREFIX
 
-			# Check if the extraction was successful
-			if [ $? -eq 0 ]; then
-				echo "Download and extraction completed successfully."
-			else
-				echo "Error during download or extraction."
+			if [ ! -f "$NODE_PREFIX/package/bin/npm" ]; then
+				echo "### Error: npm extraction failed. Missing $NODE_PREFIX/package/bin/npm"
 				exit 1
 			fi
 
-			# Verify that the NODE_PREFIX directory exists and is not empty
-			if [ -d "$NODE_PREFIX" ] && [ "$(ls -A "$NODE_PREFIX")" ]; then
-				echo "The directory $NODE_PREFIX exists and is not empty."
-			else
-				echo "The directory $NODE_PREFIX does not exist or is empty."
+			export PATH="$NODE_PREFIX/package/bin:$PATH"
+
+			# Verify npm installation
+			if ! command -v npm &> /dev/null; then
+				echo "Error: npm command not found in PATH."
 				exit 1
 			fi
 
-			# List the contents of the NODE_PREFIX directory
-			echo "Contents of $NODE_PREFIX:"
-			ls -l "$NODE_PREFIX"
-
-			# Verify the presence of the main npm package directory
-			if [ -d "$NODE_PREFIX/package" ]; then
-				echo "npm package extracted successfully in $NODE_PREFIX."
-    			echo "2-Contents of $NODE_PREFIX/package:"
-			else
-				echo "npm package directory is missing in $NODE_PREFIX."
-				exit 1
-			fi
-
+			echo "NPM installed successfully. Version: $(npm -v)"
 
 			# Configure NodeJS paths
 			mkdir -p "$ROOT_DIR/build"
