@@ -549,7 +549,8 @@ sub_nodejs(){
 				exit 1
 			fi
 
-			export PATH="$NODE_PREFIX/package/bin:$PATH"
+			export PATH="$NODE_PREFIX/package/node_modules/npm/bin:$PATH"
+    		export NPM_CONFIG_PREFIX="$NODE_PREFIX/package"
 
 			# Verify npm installation
 			if ! command -v npm &> /dev/null; then
@@ -568,6 +569,9 @@ sub_nodejs(){
 			echo "-DOPTION_BUILD_LOADERS_NODE_PATH=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
 			# Configure NPM path
 			echo "-DNPM_ROOT=$NODE_PREFIX/package" >> $CMAKE_CONFIG_PATH
+			ln -sf "$NODE_PREFIX/package/node_modules/npm/bin/npm" "$NODE_PREFIX/package/bin/npm"
+
+    		echo "### Setup complete ###"
 		else
 
 			brew install node@22
