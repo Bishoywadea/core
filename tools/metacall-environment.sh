@@ -561,7 +561,7 @@ sub_nodejs(){
 			ls -l "$NODE_PREFIX"
 
 			# Verify the presence of specific files
-			if [ -f "$NODE_PREFIX/lib/libnode.dylib" ] && [ -f "$NODE_PREFIX/bin/node" ]; then
+			if [ -f "$NODE_PREFIX/libnode.dylib" ] && [ -f "$NODE_PREFIX/node" ]; then
 				echo "libnode.dylib and node executable are present in $NODE_PREFIX."
 			else
 				echo "libnode.dylib or node executable are missing in $NODE_PREFIX."
@@ -595,6 +595,7 @@ sub_nodejs(){
 			# Verify the presence of the main npm package directory
 			if [ -d "$NODE_PREFIX/package" ]; then
 				echo "npm package extracted successfully in $NODE_PREFIX."
+    			echo "2-Contents of $NODE_PREFIX/package:"
 			else
 				echo "npm package directory is missing in $NODE_PREFIX."
 				exit 1
