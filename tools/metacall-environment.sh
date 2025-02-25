@@ -521,56 +521,66 @@ sub_nodejs(){
 		fi
 	elif [ "${OPERATIVE_SYSTEM}" = "Darwin" ]; then
 		# TODO: Fork  https://github.com/puerts/backend-nodejs or let metacall build system compile NodeJS library itself
-		# if [ -z "${NodeJS_BUILD_FROM_SOURCE:-}" ]; then
-		# 	# Define node location
-		# 	NODE_PREFIX="$ROOT_DIR/build"
-		# 	# Include binaries into PATH
-		# 	export PATH="$NODE_PREFIX:$PATH"
+		if [ -z "${NodeJS_BUILD_FROM_SOURCE:-}" ]; then
+			echo "### Building Precompiled NodeJS ###"
+			# Define node location
+			NODE_PREFIX="$ROOT_DIR/build"
+			# Include binaries into PATH
+			export PATH="$NODE_PREFIX:$PATH"
 
-		# 	# Create install path
-		# 	mkdir -p "$NODE_PREFIX"
-		# 	# Install NodeJS (TODO: Implement arm64 or amd64 detection into ${arch})
-		# 	wget -qO- https://github.com/metacall/libnode/releases/download/v22.6.0/libnode-${arch}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
-		# 	# Install NPM
-		# 	wget -qO- https://registry.npmjs.org/npm/-/npm-10.8.2.tgz | tar xvz -C $NODE_PREFIX
+			# Create install path
+			mkdir -p "$NODE_PREFIX"
+			# Install NodeJS (TODO: Implement arm64 or amd64 detection into ${arch})
+			ARCH=$(uname -m)
+			if [[ "$ARCH" == "x86_64" ]]; then
+				arch="amd64"
+			elif [[ "$ARCH" == "arm64" ]]; then
+				arch="arm64"
+			else
+				echo "Unsupported architecture: $ARCH"
+				exit 1
+			fi
+			wget -qO- https://github.com/metacall/libnode/releases/download/v22.6.0/libnode-${arch}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
+			# Install NPM
+			wget -qO- https://registry.npmjs.org/npm/-/npm-10.8.2.tgz | tar xvz -C $NODE_PREFIX
 
-		# 	# Configure NodeJS paths
-		# 	mkdir -p "$ROOT_DIR/build"
-		# 	CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
-		# 	echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/node" >> $CMAKE_CONFIG_PATH
-		# 	echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
+			# Configure NodeJS paths
+			mkdir -p "$ROOT_DIR/build"
+			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
+			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/node" >> $CMAKE_CONFIG_PATH
+			echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
 
-		# 	# Configure NPM path
-		# 	echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
-		# else
+			# Configure NPM path
+			echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
+		else
 
-		brew install node@22
-		# Make node 22 the default
-		brew link node@22 --force --overwrite
-		# Execute post install scripts
-		brew postinstall node@22
-		# Define node location
-		NODE_PREFIX=$(brew --prefix node@22)
-		# Include binaries into PATH
-		export PATH="$NODE_PREFIX/bin:$PATH"
+			brew install node@22
+			# Make node 22 the default
+			brew link node@22 --force --overwrite
+			# Execute post install scripts
+			brew postinstall node@22
+			# Define node location
+			NODE_PREFIX=$(brew --prefix node@22)
+			# Include binaries into PATH
+			export PATH="$NODE_PREFIX/bin:$PATH"
 
-		# Configure NodeJS paths
-		mkdir -p "$ROOT_DIR/build"
-		CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
-		echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/bin/node" >> $CMAKE_CONFIG_PATH
-		# echo "-DNodeJS_INCLUDE_DIR=$NODE_PREFIX/include/node" >> $CMAKE_CONFIG_PATH
-		# echo "-DNodeJS_LIBRARY=$NODE_PREFIX/lib/libnode.93.dylib" >> $CMAKE_CONFIG_PATH
+			# Configure NodeJS paths
+			mkdir -p "$ROOT_DIR/build"
+			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
+			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/bin/node" >> $CMAKE_CONFIG_PATH
+			# echo "-DNodeJS_INCLUDE_DIR=$NODE_PREFIX/include/node" >> $CMAKE_CONFIG_PATH
+			# echo "-DNodeJS_LIBRARY=$NODE_PREFIX/lib/libnode.93.dylib" >> $CMAKE_CONFIG_PATH
 
-		# Configure NPM path
-		echo "-DNPM_ROOT=$NODE_PREFIX/bin" >> $CMAKE_CONFIG_PATH
+			# Configure NPM path
+			echo "-DNPM_ROOT=$NODE_PREFIX/bin" >> $CMAKE_CONFIG_PATH
 
-		if [ $INSTALL_C = 1 ]; then
-			# Required for test source/tests/metacall_node_port_c_lib_test
-			brew install libgit2@1.8
-			brew link libgit2@1.8 --force --overwrite
+			if [ $INSTALL_C = 1 ]; then
+				# Required for test source/tests/metacall_node_port_c_lib_test
+				brew install libgit2@1.8
+				brew link libgit2@1.8 --force --overwrite
+			fi
+
 		fi
-
-		# fi
 	fi
 }
 
