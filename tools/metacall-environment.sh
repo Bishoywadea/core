@@ -610,7 +610,7 @@ sub_nodejs(){
 			echo "-DOPTION_BUILD_LOADERS_NODE=ON" >> $CMAKE_CONFIG_PATH
 			echo "-DOPTION_BUILD_LOADERS_NODE_PATH=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
 			# Configure NPM path
-			echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
+			echo "-DNPM_ROOT=$NODE_PREFIX/package" >> $CMAKE_CONFIG_PATH
 		else
 
 			brew install node@22
