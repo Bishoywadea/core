@@ -530,7 +530,6 @@ sub_nodejs(){
 
 			# Create install path
 			mkdir -p "$NODE_PREFIX"
-			# Install NodeJS (TODO: Implement arm64 or amd64 detection into ${arch})
 			ARCH=$(uname -m)
 			if [[ "$ARCH" == "x86_64" ]]; then
 				arch="amd64"
@@ -541,18 +540,76 @@ sub_nodejs(){
 				exit 1
 			fi
 			wget -qO- https://github.com/metacall/libnode/releases/download/v22.6.0/libnode-${arch}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
+			
+			if [ $? -eq 0 ]; then
+				echo "Download and extraction completed successfully."
+			else
+				echo "Error during download or extraction."
+				exit 1
+			fi
+
+			# Verify that the NODE_PREFIX directory exists and is not empty
+			if [ -d "$NODE_PREFIX" ] && [ "$(ls -A "$NODE_PREFIX")" ]; then
+				echo "The directory $NODE_PREFIX exists and is not empty."
+			else
+				echo "The directory $NODE_PREFIX does not exist or is empty."
+				exit 1
+			fi
+
+			# List the contents of the NODE_PREFIX directory
+			echo "Contents of $NODE_PREFIX:"
+			ls -l "$NODE_PREFIX"
+
+			# Verify the presence of specific files
+			if [ -f "$NODE_PREFIX/lib/libnode.dylib" ] && [ -f "$NODE_PREFIX/bin/node" ]; then
+				echo "libnode.dylib and node executable are present in $NODE_PREFIX."
+			else
+				echo "libnode.dylib or node executable are missing in $NODE_PREFIX."
+				exit 1
+			fi
+
+			
 			# Install NPM
 			wget -qO- https://registry.npmjs.org/npm/-/npm-10.8.2.tgz | tar xvz -C $NODE_PREFIX
+
+			# Check if the extraction was successful
+			if [ $? -eq 0 ]; then
+				echo "Download and extraction completed successfully."
+			else
+				echo "Error during download or extraction."
+				exit 1
+			fi
+
+			# Verify that the NODE_PREFIX directory exists and is not empty
+			if [ -d "$NODE_PREFIX" ] && [ "$(ls -A "$NODE_PREFIX")" ]; then
+				echo "The directory $NODE_PREFIX exists and is not empty."
+			else
+				echo "The directory $NODE_PREFIX does not exist or is empty."
+				exit 1
+			fi
+
+			# List the contents of the NODE_PREFIX directory
+			echo "Contents of $NODE_PREFIX:"
+			ls -l "$NODE_PREFIX"
+
+			# Verify the presence of the main npm package directory
+			if [ -d "$NODE_PREFIX/package" ]; then
+				echo "npm package extracted successfully in $NODE_PREFIX."
+			else
+				echo "npm package directory is missing in $NODE_PREFIX."
+				exit 1
+			fi
+
 
 			# Configure NodeJS paths
 			mkdir -p "$ROOT_DIR/build"
 			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
-			echo "-DNodeJS_EXECUTABLE=/usr/local/bin/node" >> $CMAKE_CONFIG_PATH
-			echo "-DNodeJS_LIBRARY=/usr/local/lib/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
-			echo "-DNPM_ROOT=/usr/local/bin" >> $CMAKE_CONFIG_PATH
-
+			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/node" >> $CMAKE_CONFIG_PATH
+			echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
+			echo "-DOPTION_BUILD_LOADERS_NODE=ON" >> $CMAKE_CONFIG_PATH
+			echo "-DOPTION_BUILD_LOADERS_NODE_PATH=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
 			# Configure NPM path
-			# echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
+			echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
 		else
 
 			brew install node@22
