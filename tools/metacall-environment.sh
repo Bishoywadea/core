@@ -520,86 +520,42 @@ sub_nodejs(){
 			$SUDO_CMD apk del .build-nodejs-python-deps
 		fi
 	elif [ "${OPERATIVE_SYSTEM}" = "Darwin" ]; then
-		# TODO: Fork  https://github.com/puerts/backend-nodejs or let metacall build system compile NodeJS library itself
+		# Install NodeJS (required for source build or NPM itself)
+		brew install node@22
+		# Make node 22 the default
+		brew link node@22 --force --overwrite
+		# Execute post install scripts
+		brew postinstall node@22
+		# Define node location
+		NODE_PREFIX=$(brew --prefix node@22)
+
+		# Configure NodeJS paths
+		mkdir -p "$ROOT_DIR/build"
+		CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
+
+		# Configure NPM path
+		echo "-DNPM_ROOT=$NODE_PREFIX/bin" >> $CMAKE_CONFIG_PATH
+
+		# Build either using pre-compiled binaries or building node from source
 		if [ -z "${NodeJS_BUILD_FROM_SOURCE:-}" ]; then
-			echo "### Building Precompiled NodeJS ###"
 			# Define node location
 			NODE_PREFIX="$ROOT_DIR/build"
-			# Include binaries into PATH
-			export PATH="$NODE_PREFIX:$PATH"
-
-			# Create install path
-			mkdir -p "$NODE_PREFIX"
-			ARCH=$(uname -m)
-			if [[ "$ARCH" == "x86_64" ]]; then
-				arch="amd64"
-			elif [[ "$ARCH" == "arm64" ]]; then
-				arch="arm64"
-			else
-				echo "Unsupported architecture: $ARCH"
-				exit 1
-			fi
-			wget -qO- https://github.com/metacall/libnode/releases/download/v22.6.0/libnode-${arch}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
-			
-			# Install NPM
-			wget -qO- https://registry.npmjs.org/npm/-/npm-10.8.2.tgz | tar xvz -C $NODE_PREFIX
-
-			if [ ! -f "$NODE_PREFIX/package/bin/npm" ]; then
-				echo "### Error: npm extraction failed. Missing $NODE_PREFIX/package/bin/npm"
-				exit 1
-			fi
-
-			export PATH="$NODE_PREFIX/package/node_modules/npm/bin:$PATH"
-    		export NPM_CONFIG_PREFIX="$NODE_PREFIX/package"
-
-			# Verify npm installation
-			if ! command -v npm &> /dev/null; then
-				echo "Error: npm command not found in PATH."
-				exit 1
-			fi
-
-			echo "NPM installed successfully. Version: $(npm -v)"
-
-			# Configure NodeJS paths
-			mkdir -p "$ROOT_DIR/build"
-			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
+			# Install NodeJS
+			wget -qO- https://github.com/metacall/libnode/releases/download/v22.9.0/libnode-${ARCHITECTURE}-macos.tar.xz | tar xvJ -C $NODE_PREFIX
+			# Configure NodeJS path
 			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/node" >> $CMAKE_CONFIG_PATH
-			echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
-			echo "-DOPTION_BUILD_LOADERS_NODE=ON" >> $CMAKE_CONFIG_PATH
-			echo "-DOPTION_BUILD_LOADERS_NODE_PATH=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
-			# Configure NPM path
-			echo "-DNPM_ROOT=$NODE_PREFIX/package" >> $CMAKE_CONFIG_PATH
-			ln -sf "$NODE_PREFIX/package/node_modules/npm/bin/npm" "$NODE_PREFIX/package/bin/npm"
-
-    		echo "### Setup complete ###"
+			echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.dylib" >> $CMAKE_CONFIG_PATH
 		else
-
-			brew install node@22
-			# Make node 22 the default
-			brew link node@22 --force --overwrite
-			# Execute post install scripts
-			brew postinstall node@22
-			# Define node location
-			NODE_PREFIX=$(brew --prefix node@22)
 			# Include binaries into PATH
 			export PATH="$NODE_PREFIX/bin:$PATH"
-
-			# Configure NodeJS paths
-			mkdir -p "$ROOT_DIR/build"
-			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
+			# Define executable path
 			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/bin/node" >> $CMAKE_CONFIG_PATH
-			# echo "-DNodeJS_INCLUDE_DIR=$NODE_PREFIX/include/node" >> $CMAKE_CONFIG_PATH
-			# echo "-DNodeJS_LIBRARY=$NODE_PREFIX/lib/libnode.93.dylib" >> $CMAKE_CONFIG_PATH
+		fi
 
-			# Configure NPM path
-			echo "-DNPM_ROOT=$NODE_PREFIX/bin" >> $CMAKE_CONFIG_PATH
-
-			if [ $INSTALL_C = 1 ]; then
-				# Required for test source/tests/metacall_node_port_c_lib_test
-				brew install libgit2@1.8
-				brew link libgit2@1.8 --force --overwrite
-			fi
-
+		if [ $INSTALL_C = 1 ]; then
+			# Required for test source/tests/metacall_node_port_c_lib_test
+			brew install libgit2@1.8
+			brew link libgit2@1.8 --force --overwrite
 		fi
 	fi
 }
