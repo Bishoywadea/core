@@ -70,6 +70,13 @@ case "$(uname -s)" in
 	*)			OPERATIVE_SYSTEM="Unknown"
 esac
 
+# Architecture detection
+case "$(uname -m)" in
+	x86_64)	ARCHITECTURE="amd64";;
+	arm64)	ARCHITECTURE="arm64";;
+	*)		ARCHITECTURE="Unknown";;
+esac
+
 # Check out for sudo
 if [ "`id -u`" = '0' ]; then
 	SUDO_CMD=""
@@ -637,8 +644,9 @@ sub_java(){
 sub_c(){
 	echo "configure c"
 
-	LLVM_VERSION_STRING=14
 	if [ "${OPERATIVE_SYSTEM}" = "Linux" ]; then
+		LLVM_VERSION_STRING=14
+
 		if [ "${LINUX_DISTRO}" = "debian" ]; then
 			UBUNTU_CODENAME=""
 			CODENAME_FROM_ARGUMENTS=""
