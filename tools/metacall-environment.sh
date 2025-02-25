@@ -547,11 +547,12 @@ sub_nodejs(){
 			# Configure NodeJS paths
 			mkdir -p "$ROOT_DIR/build"
 			CMAKE_CONFIG_PATH="$ROOT_DIR/build/CMakeConfig.txt"
-			echo "-DNodeJS_EXECUTABLE=$NODE_PREFIX/node" >> $CMAKE_CONFIG_PATH
-			echo "-DNodeJS_LIBRARY=$NODE_PREFIX/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
+			echo "-DNodeJS_EXECUTABLE=/usr/local/bin/node" >> $CMAKE_CONFIG_PATH
+			echo "-DNodeJS_LIBRARY=/usr/local/lib/libnode.127.dylib" >> $CMAKE_CONFIG_PATH
+			echo "-DNPM_ROOT=/usr/local/bin" >> $CMAKE_CONFIG_PATH
 
 			# Configure NPM path
-			echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
+			# echo "-DNPM_ROOT=$NODE_PREFIX" >> $CMAKE_CONFIG_PATH
 		else
 
 			brew install node@22
